@@ -1,3 +1,5 @@
+use std::io;
+
 struct Movie {
     name: String,
     director: String,
@@ -49,4 +51,81 @@ fn main() {
             movie.name, movie.director, movie.genre, movie.price, movie.rating
         );
     }
+
+    //Ask the user for a director and read one line from the keyboard.
+    println!("Enter a director (or None for no preference):");
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        //pointer to input in stack frame which then points to the buffer
+        //&mut says we can read and write whats in the buffer and
+        //ownership stays with input so we just borrow ownership to modify input. 
+        .expect("Failed to read line");
+    let director = input.trim();
+
+    //No filter if the user typed "none" (any case) or left the line blank (enter).
+    let director_filter: Option<&str> =
+    //Option is a type that means a value or nothing, in this case Option<&str> is either a reference
+    //into input's text or None. 
+        if director.is_empty() || director.eq_ignore_ascii_case("none") {
+            None
+        } else {
+            Some(director)
+        };
+
+    match director_filter {
+        Some(d) => println!("Filtering by director: {}", d),
+        None => println!("No director filter."),
+    }
+
+    // Ask for a genre, using the same pattern as the director.
+    println!("Enter a genre (or None for no preference):");
+    let mut genre_input = String::new();
+    io::stdin()
+        .read_line(&mut genre_input)
+        //.read_line(&mut genre_input) passes a pointer to genre_input in the stack frame.
+        //That record's pointer leads to the heap buffer. &mut gives read_line permission to read
+        //and write it, while genre_input keeps ownership the whole time, we just borrow access.
+        .expect("Failed to read line");
+    let genre = genre_input.trim();
+
+    let genre_filter: Option<&str> =
+    //Option holds either a reference to the text or it doesn't. 
+        if genre.is_empty() || genre.eq_ignore_ascii_case("none") {
+            None
+        } else {
+            Some(genre)
+        };
+    
+    match genre_filter {
+        Some(g) => println!("Filtering by genre: {}", g),
+        None => println!("No genre filter."),
+    }
+
+    //Ask for a max price; keep asking until the input is valid.
+    let max_price: Option<f64> = loop {
+        println!("Enter a max price (or None for no preference):");
+        let mut price_input = String::new();
+        io::stdin()
+            .read_line(&mut price_input)
+            .expect("Failed to read line");
+        let price_text = price_input.trim();
+
+        //Blank or "none" means no price filter.
+        if price_text.is_empty() || price_text.eq_ignore_ascii_case("none") {
+            break None; //breaks loop and returns None to Option
+        }
+
+        //Try to turn the text into a non-negative number or loop again
+        match price_text.parse::<f64>() {
+            //::<_> is a turbofish
+            Ok(value) if value >= 0.0 => break Some(value), //breaks loop and returns Some(value) to Option
+            _ => println!("Invalid price. Enter a number like 12.50, or None."),
+        }
+
+        match max_price {
+            Some(p) => println!("Filtering by max price: ${:.2}", p),
+            None => println!("No price filter."),
+        }
+    };
 }
