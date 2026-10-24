@@ -122,10 +122,108 @@ fn main() {
             Ok(value) if value >= 0.0 => break Some(value), //breaks loop and returns Some(value) to Option
             _ => println!("Invalid price. Enter a number like 12.50, or None."),
         }
+    };
 
-        match max_price {
-            Some(p) => println!("Filtering by max price: ${:.2}", p),
-            None => println!("No price filter."),
+    match max_price {
+        Some(p) => println!("Filtering by max price: ${:.2}", p),
+        None => println!("No price filter."),
+    }
+
+    //Ask for a min rating: keep asking until the input is valid.
+    let min_rating: Option<f64> = loop {
+        println!("Enter a min rating from 0 to 10 (or None for no preference)");
+        let mut rating_input = String::new();
+        io::stdin()
+            .read_line(&mut rating_input)
+            .expect("Failed to read line");
+        let rating_text = rating_input.trim();
+
+        //Blank or "none" means no rating filter.
+        if rating_text.is_empty() || rating_text.eq_ignore_ascii_case("none") {
+            break None;
+        }
+
+        //Try to turn the text inot a number between 0 and 10.
+        match rating_text.parse::<f64>() {
+            Ok(value) if (0.0..=10.0).contains(&value) => break Some(value),
+            _ => println!("Invalid rating. Enter a number from 0 to 10, or None."),
         }
     };
+    
+    match min_rating {
+        Some(r) => println!("Filtering by min rating: {:.1}", r),
+        None => println!("No rating filter."),
+    }
+
+    // Keep only the movies that pass every filter the user set.
+    let mut results: Vec<&Movie> = Vec::new();
+    // Empty vector that holds references to movie instances, not copies.
+    // &Movie means each item points back into the original movies buffer
+    // mut is needed because we push into it, changing it. 
+
+    for movie in &movies {
+        // Skip this movie if a director filter is set and it doesn't match.
+        if let Some(d) = director_filter {
+            if !movie.director.eq_ignore_ascii_case(d) {
+                continue;
+            }
+        //Simple Example: If Christopher Nolan == Christopher Nolan we get true which is flipped to false
+        //Which then causes the continue to be skipped, if its true the continue is ran
+        }
+
+        //Skip if a genre filter is set and it doesn't match
+        if let Some(g) = genre_filter {
+            if !movie.genre.eq_ignore_ascii_case(g) {
+                continue;
+            }
+        }
+
+        //Skip if a max price is set and the movie costs more.
+        if let Some(p) = max_price {
+            if movie.price > p {
+                continue;
+            }
+        }
+
+        //Skip if a min rating is set and the movie is rated lower.
+        if let Some(r) = min_rating {
+            if movie.rating < r {
+                continue;
+            }
+        }
+
+        // The movie passed every filter, so keep it.
+        results.push(movie);
+    }
+
+    // Tell the user when nothing matched; otherwise list the matches.
+    if results.is_empty() {
+        println!("No movies matched your criteria.");
+    } else {
+        println!("{} movie(s) matched;", results.len());
+        for movie in &results {
+            println!(" {}", movie.name);
+        }
+    }
+
+    // Ask which attribute to sort by; keep asking until the input is valid.
+    let sort_by: &str = loop {
+        println!("Sort by which attribute? (name, director, genre, price, rating):");
+        let mut sort_input = String::new();
+        io::stdin()
+            .read_line(&mut sort_input)
+            .expect("failed to read line");
+        let sort_text = sort_input.trim().to_lowercase();
+
+        match sort_text.as_str() {
+            "name" => break "name",
+            "director" => break "director", 
+            "genre" => break "genre",
+            "price" => break "price",
+            "rating" => break "rating",
+            _ => println!("Invalid choice. Type name, director, genre, price, or rating."),
+        }
+    };
+
+    println!("Sorting by: {}", sort_by);
 }
