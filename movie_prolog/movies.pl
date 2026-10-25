@@ -1,8 +1,9 @@
 % Movie Recommendation System (Prolog)
 
-:- initialization(main, main). % second main added so the program exits when it finished instead of the ?- prompt
+:- initialization(main, main). % second main added so the program exits when it finished instead of the ?- prompt again
 
 % Each line is a fact, all movie(...) facts is the predicate movie/5 meaning 5 arguments
+
 % movie(Name, Director, Genre, Price, Rating).
 movie('Avengers: Infinity War', 'Anthony and Joe Russo', 'Action', 14.99, 8.4).
 movie('The Shawshank Redemption', 'Frank Darabont', 'Drama', 9.99, 9.3).
@@ -30,12 +31,14 @@ print_all :-
     forall(movie(Name, Director, Genre, Price, Rating),
         format('~w | ~w | ~w | $~2f | ~1f~n',
             [Name, Director, Genre, Price, Rating])).
+
 % forall(Condition, Action) for every way Condition can be true, Action must succeed
 % No counter, index and no for keyword. Prolog automatically finds every matching fact through
 % backtracking
 
 % Turn typed text into a filter: blank or "none" (any case) means no filter.
 % Otherwise, the filter is the text in lowercase, so matching ignores case.
+
 make_filter(Text, Filter) :-
     downcase_atom(Text, Lower),
     (   ( Lower == '' ; Lower == none )
@@ -52,6 +55,7 @@ ask_filter(Prompt, Filter) :-
 
 % Ask for a number from Low to High; none means no filter.
 % If the answer is invalid, ask again by calling this rule again (recursion).
+
 ask_number(Prompt, Low, High, Filter) :-
     write(Prompt),
     nl,
@@ -78,6 +82,7 @@ valid_sort(rating).
 
 % Ask which attribute to sort by; "default" means name.
 % If the answer is invalid, ask again by calling this rule again (recursion).
+
 ask_sort(SortBy) :-
     write('Sort by which attribute? (name, director, genre, price, rating, or default for name):'),
     nl,
@@ -93,28 +98,24 @@ ask_sort(SortBy) :-
         ask_sort(SortBy)
     ).
 
-% A text filter passes if it is none, or equals the movies value (ignoring case).
-% DirectorFilter or GenreFilter is passed into the first argument, value is the second argument from
-% the matches loop
 text_ok(none, _).
 text_ok(Filter, Value) :-
     Filter \== none,
     downcase_atom(Value, Lower),
     Lower == Filter.
 
-% A max price passes if it is none, or the movies price is not above it.
 price_ok(none, _).
 price_ok(Max, Price) :-
     Max \== none,
     Price =< Max.
 
-% A min rating passes if it is none, or the movies rating is not below it.
 rating_ok(none, _).
 rating_ok(Min, Rating) :-
     Min \== none,
     Rating >= Min.
 
 % Collect every movie that passes all four filters into a list.
+
 find_matches(DirectorFilter, GenreFilter, MaxPrice, MinRating, Matches) :-
     findall(movie(Name, Director, Genre, Price, Rating), % Picks one movie at a time and works through all of them by backtracking
             (   movie(Name, Director, Genre, Price, Rating),
@@ -126,17 +127,20 @@ find_matches(DirectorFilter, GenreFilter, MaxPrice, MinRating, Matches) :-
             Matches).
 
 % Print the tables header row and a divider line.
+
 print_header :-
     format('~w~t~5|~w~t~42|~w~t~67|~w~t~88|~t~w~96| ~t~w~104|~n',
             ['#', 'Name', 'Director', 'Genre', 'Price', 'Rating']),
     format('~`-t~104|~n').
 
 % Print one movie as a row of the table.
+
 print_row(Index, Name, Director, Genre, Price, Rating) :-
     format('~w~t~5|~w~t~42|~w~t~67|~w~t~88|~t$~2f~96| ~t~1f~104|~n',
             [Index, Name, Director, Genre, Price, Rating]).
 
 % Show the results; an empty list means nothing matched.
+
 show_results([]) :-
     write('No movies matched your criteria.'),
     nl.
@@ -152,6 +156,7 @@ show_results(Matches) :-
 
 % For each sort attribute: which argument of movie/5 it is, and which direction.
 % @=< is ascending (low to hight); @>= is descending (high to low).
+
 sort_position(name, 1, @=<).
 sort_position(director, 2, @=<).
 sort_position(genre, 3, @=<).
@@ -159,11 +164,13 @@ sort_position(price, 4, @=<).
 sort_position(rating, 5, @>=).
 
 % Sort the list of movies by the chosen attribute.
+
 sort_matches(SortBy, Matches, Sorted) :-
     sort_position(SortBy, Position, Order),
     sort(Position, Order, Matches, Sorted).
 
 % Ask whether to search again; yes or y means yes, anything else means no.
+
 ask_again(Answer) :-
     write('Search again? (yes/no):'),
     nl,
@@ -176,6 +183,7 @@ ask_again(Answer) :-
     ).
 
 % Run one search from start to finish
+
 run_search :-
     ask_filter('Enter a director (or None for no preference);', DirectorFilter),
     ask_filter('Enter a genre (or None for no preference):', GenreFilter),
@@ -187,6 +195,7 @@ run_search :-
     show_results(Sorted).
 
 % Repeat searches until the user quits. The rule calls itself to repeat (recursion).
+
 search_loop :-
     run_search,
     ask_again(Again),
@@ -197,6 +206,7 @@ search_loop :-
     ).
 
 % main:- is a rule :- is read as "if", it says main is true if these steps succeed. 
+
 main :- 
     write('Movie Recommendation System (Prolog)'),
     nl,

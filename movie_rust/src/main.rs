@@ -11,7 +11,7 @@ struct Movie {
 fn main() {
     println!("Movie Recommendation System (Rust)");
     // the "!" stands for macro different from a regular function because it
-    // can take a variable number of arguments and types and is expanded at compile time.
+    // can take a variable number of arguments
     
     //Rust is statically typed compiler looks at every function call to check arguments/types
     //before program runs
@@ -60,7 +60,7 @@ fn main() {
             .read_line(&mut input)
             //pointer to input in stack frame which then points to the buffer
             //&mut says we can read and write whats in the buffer and
-            //ownership stays with input so we just borrow ownership to modify input. 
+            //ownership stays with input so we just borrow access to modify input. 
             .expect("Failed to read line");
         let director = input.trim();
 
